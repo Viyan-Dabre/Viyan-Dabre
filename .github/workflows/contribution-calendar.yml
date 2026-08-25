@@ -61,7 +61,9 @@ jobs:
             const top = 30;
 
             const width = left + (weeks.length * cell) + 10;
-            const height = 135;
+
+            // Extra vertical space reserved for the legend.
+            const height = 165;
 
             const colors = {
               NONE: "#161B22",
@@ -187,7 +189,8 @@ jobs:
             });
 
             // Legend
-            const legendY = 122;
+            // Moved below the contribution grid so it cannot overlap.
+            const legendY = 151;
 
             svg += `
               <text
