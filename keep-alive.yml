@@ -1,0 +1,26 @@
+name: Keep stats warm
+
+# This workflow is entirely optional. The README's stats and streak images
+# are generated live by external services (github-readme-stats,
+# github-readme-streak-stats) every time your profile page is opened, so
+# nothing here is required for the README to work.
+#
+# What this does: pings those two image URLs on a schedule so their cache
+# stays warm and the first load of your profile page doesn't feel slow.
+# If this workflow is deleted or a run fails, the README keeps working
+# exactly the same — it just re-fetches on demand instead.
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # once a day
+  workflow_dispatch: {}
+
+jobs:
+  ping-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warm github-readme-stats cache
+        continue-on-error: true
+        run: |
+          curl -s -o /dev/null "https://github-readme-stats.vercel.app/api?username=Viyan-Dabre&show_icons=true"
+          curl -s -o /dev/null "https://github-readme-streak-stats.herokuapp.com/?user=Viyan-Dabre"
