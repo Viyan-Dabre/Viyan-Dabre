@@ -57,13 +57,12 @@ jobs:
             const gap = 3;
             const cell = cellSize + gap;
 
+            // Layout
             const left = 42;
-            const top = 30;
+            const top = 58;
 
-            const width = left + (weeks.length * cell) + 10;
-
-            // Extra vertical space reserved for the legend.
-            const height = 165;
+            const width = left + (weeks.length * cell) + 12;
+            const height = 205;
 
             const colors = {
               NONE: "#161B22",
@@ -96,9 +95,10 @@ jobs:
                 stroke="#30363D"
               />
 
+              <!-- Contribution count -->
               <text
                 x="18"
-                y="22"
+                y="24"
                 fill="#E6EDF3"
                 font-family="Arial, sans-serif"
                 font-size="14"
@@ -108,11 +108,39 @@ jobs:
               </text>
             `;
 
+            // Month labels
+            let lastMonth = "";
+
+            weeks.forEach((week, weekIndex) => {
+              const firstDay = week.contributionDays[0];
+
+              if (!firstDay) return;
+
+              const date = new Date(firstDay.date + "T00:00:00");
+              const month = monthNames[date.getMonth()];
+
+              if (month !== lastMonth) {
+                svg += `
+                  <text
+                    x="${left + weekIndex * cell}"
+                    y="46"
+                    fill="#8B949E"
+                    font-family="Arial, sans-serif"
+                    font-size="10"
+                  >
+                    ${month}
+                  </text>
+                `;
+
+                lastMonth = month;
+              }
+            });
+
             // Weekday labels
             const weekdays = [
-              ["Mon", 48],
-              ["Wed", 72],
-              ["Fri", 96]
+              ["Mon", 82],
+              ["Wed", 112],
+              ["Fri", 142]
             ];
 
             for (const [label, y] of weekdays) {
@@ -129,40 +157,12 @@ jobs:
               `;
             }
 
-            // Month labels
-            let lastMonth = "";
-
-            weeks.forEach((week, weekIndex) => {
-              const firstDay = week.contributionDays[0];
-
-              if (firstDay) {
-                const date = new Date(firstDay.date + "T00:00:00");
-                const month = monthNames[date.getMonth()];
-
-                if (month !== lastMonth && weekIndex > 0) {
-                  svg += `
-                    <text
-                      x="${left + weekIndex * cell}"
-                      y="22"
-                      fill="#8B949E"
-                      font-family="Arial, sans-serif"
-                      font-size="10"
-                    >
-                      ${month}
-                    </text>
-                  `;
-
-                  lastMonth = month;
-                }
-              }
-            });
-
             // Contribution cells
             weeks.forEach((week, weekIndex) => {
               week.contributionDays.forEach((day) => {
                 const date = new Date(day.date + "T00:00:00");
 
-                // JS: Sunday=0, GitHub grid: Sunday=0
+                // Sunday = 0, matching GitHub's calendar grid
                 const row = date.getDay();
 
                 const x = left + weekIndex * cell;
@@ -189,8 +189,7 @@ jobs:
             });
 
             // Legend
-            // Moved below the contribution grid so it cannot overlap.
-            const legendY = 151;
+            const legendY = 190;
 
             svg += `
               <text
