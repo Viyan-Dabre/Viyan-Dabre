@@ -34,7 +34,7 @@
 
 <br/>
 
-## `whoami`
+## `who am I`
 
 <br/>
 
@@ -174,15 +174,13 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 
 <br/><br/>
 
-<a href="https://github.com/Viyan-Dabre">
-  <img src="https://img.shields.io/badge/View_GitHub_Activity-111217?style=flat-square&logo=github&logoColor=E8E6E1&labelColor=0A0A0B" alt="View GitHub activity" />
-</a>
+<img src="assets/contribution-calendar.svg" width="100%" alt="GitHub contribution calendar" />
 
 <br/><br/>
 
-<sub>
-Contribution activity is available directly on my GitHub profile.
-</sub>
+<a href="https://github.com/Viyan-Dabre">
+  <img src="https://img.shields.io/badge/View_GitHub_Activity-111217?style=flat-square&logo=github&logoColor=E8E6E1&labelColor=0A0A0B" alt="View GitHub activity" />
+</a>
 
 </div>
 
