@@ -1,26 +1,102 @@
 <svg viewBox="0 0 640 140" xmlns="http://www.w3.org/2000/svg" width="640" height="140">
   <rect width="640" height="140" fill="transparent"/>
-  
+
+  <!-- Full-stack developer -->
   <clipPath id="clip0">
     <rect x="0" y="16" width="0" height="26">
-      <animate attributeName="width" values="0;224.4" begin="0.30s" dur="0.99s" fill="freeze" calcMode="linear"/>
+      <animate
+        attributeName="width"
+        values="0;240"
+        begin="0.30s"
+        dur="0.99s"
+        fill="freeze"
+        calcMode="linear"
+      />
     </rect>
   </clipPath>
-  <text x="16" y="34" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="18" fill="#C9A76A" clip-path="url(#clip0)">> full-stack developer</text>
+
+  <text
+    x="16"
+    y="34"
+    font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace"
+    font-size="18"
+    fill="#C9A76A"
+    clip-path="url(#clip0)"
+  >&gt; full-stack developer</text>
+
+
+  <!-- AI agent workflows -->
   <clipPath id="clip1">
     <rect x="0" y="50" width="0" height="26">
-      <animate attributeName="width" values="0;387.6" begin="1.89s" dur="1.71s" fill="freeze" calcMode="linear"/>
+      <animate
+        attributeName="width"
+        values="0;400"
+        begin="1.89s"
+        dur="1.71s"
+        fill="freeze"
+        calcMode="linear"
+      />
     </rect>
   </clipPath>
-  <text x="16" y="68" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="18" fill="#E8E6E1" clip-path="url(#clip1)">> building AI agent workflows with n8n</text>
+
+  <text
+    x="16"
+    y="68"
+    font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace"
+    font-size="18"
+    fill="#E8E6E1"
+    clip-path="url(#clip1)"
+  >&gt; building AI agent workflows with n8n</text>
+
+
+  <!-- Shipped systems -->
   <clipPath id="clip2">
     <rect x="0" y="84" width="0" height="26">
-      <animate attributeName="width" values="0;367.2" begin="4.20s" dur="1.62s" fill="freeze" calcMode="linear"/>
+      <animate
+        attributeName="width"
+        values="0;380"
+        begin="4.20s"
+        dur="1.62s"
+        fill="freeze"
+        calcMode="linear"
+      />
     </rect>
   </clipPath>
-  <text x="16" y="102" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="18" fill="#E8E6E1" clip-path="url(#clip2)">> turning ideas into shipped systems</text>
-  <rect x="387.2" y="86" width="9" height="20" fill="#C9A76A" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="6.42s" dur="0.05s" fill="freeze"/>
-    <animate attributeName="opacity" values="1;0;1;0;1;0;1;1" begin="6.42s" dur="2.4s" fill="freeze"/>
+
+  <text
+    x="16"
+    y="102"
+    font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace"
+    font-size="18"
+    fill="#E8E6E1"
+    clip-path="url(#clip2)"
+  >&gt; turning ideas into shipped systems</text>
+
+
+  <!-- Terminal cursor -->
+  <rect
+    x="387.2"
+    y="86"
+    width="9"
+    height="20"
+    fill="#C9A76A"
+    opacity="0"
+  >
+    <animate
+      attributeName="opacity"
+      values="0;1"
+      begin="6.42s"
+      dur="0.05s"
+      fill="freeze"
+    />
+
+    <animate
+      attributeName="opacity"
+      values="1;0;1;0;1;0;1;1"
+      begin="6.42s"
+      dur="2.4s"
+      fill="freeze"
+    />
   </rect>
+
 </svg>

@@ -1,0 +1,262 @@
+name: Update Contribution Calendar
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-calendar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate contribution calendar
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require("fs");
+
+            const username = "Viyan-Dabre";
+
+            const query = `
+              query($login: String!) {
+                user(login: $login) {
+                  contributionsCollection {
+                    contributionCalendar {
+                      totalContributions
+                      weeks {
+                        contributionDays {
+                          contributionCount
+                          date
+                          contributionLevel
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const result = await github.graphql(query, {
+              login: username
+            });
+
+            const calendar =
+              result.user.contributionsCollection.contributionCalendar;
+
+            const weeks = calendar.weeks;
+
+            const cellSize = 12;
+            const gap = 3;
+            const cell = cellSize + gap;
+
+            const left = 42;
+            const top = 30;
+
+            const width = left + (weeks.length * cell) + 10;
+            const height = 135;
+
+            const colors = {
+              NONE: "#161B22",
+              FIRST_QUARTILE: "#0E4429",
+              SECOND_QUARTILE: "#006D32",
+              THIRD_QUARTILE: "#26A641",
+              FOURTH_QUARTILE: "#39D353"
+            };
+
+            const monthNames = [
+              "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+
+            let svg = `
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="${width}"
+              height="${height}"
+              viewBox="0 0 ${width} ${height}"
+              role="img"
+              aria-label="${calendar.totalContributions} contributions in the last year"
+            >
+
+              <rect
+                width="100%"
+                height="100%"
+                rx="10"
+                fill="#0D1117"
+                stroke="#30363D"
+              />
+
+              <text
+                x="18"
+                y="22"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="14"
+                font-weight="600"
+              >
+                ${calendar.totalContributions} contributions in the last year
+              </text>
+            `;
+
+            // Weekday labels
+            const weekdays = [
+              ["Mon", 48],
+              ["Wed", 72],
+              ["Fri", 96]
+            ];
+
+            for (const [label, y] of weekdays) {
+              svg += `
+                <text
+                  x="10"
+                  y="${y}"
+                  fill="#8B949E"
+                  font-family="Arial, sans-serif"
+                  font-size="10"
+                >
+                  ${label}
+                </text>
+              `;
+            }
+
+            // Month labels
+            let lastMonth = "";
+
+            weeks.forEach((week, weekIndex) => {
+              const firstDay = week.contributionDays[0];
+
+              if (firstDay) {
+                const date = new Date(firstDay.date + "T00:00:00");
+                const month = monthNames[date.getMonth()];
+
+                if (month !== lastMonth && weekIndex > 0) {
+                  svg += `
+                    <text
+                      x="${left + weekIndex * cell}"
+                      y="22"
+                      fill="#8B949E"
+                      font-family="Arial, sans-serif"
+                      font-size="10"
+                    >
+                      ${month}
+                    </text>
+                  `;
+
+                  lastMonth = month;
+                }
+              }
+            });
+
+            // Contribution cells
+            weeks.forEach((week, weekIndex) => {
+              week.contributionDays.forEach((day) => {
+                const date = new Date(day.date + "T00:00:00");
+
+                // JS: Sunday=0, GitHub grid: Sunday=0
+                const row = date.getDay();
+
+                const x = left + weekIndex * cell;
+                const y = top + row * cell;
+
+                const fill =
+                  colors[day.contributionLevel] || colors.NONE;
+
+                svg += `
+                  <rect
+                    x="${x}"
+                    y="${y}"
+                    width="${cellSize}"
+                    height="${cellSize}"
+                    rx="2"
+                    fill="${fill}"
+                  >
+                    <title>
+                      ${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}
+                    </title>
+                  </rect>
+                `;
+              });
+            });
+
+            // Legend
+            const legendY = 122;
+
+            svg += `
+              <text
+                x="${left}"
+                y="${legendY}"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                Less
+              </text>
+            `;
+
+            const legendColors = [
+              "#161B22",
+              "#0E4429",
+              "#006D32",
+              "#26A641",
+              "#39D353"
+            ];
+
+            legendColors.forEach((color, index) => {
+              svg += `
+                <rect
+                  x="${left + 28 + index * 15}"
+                  y="${legendY - 9}"
+                  width="11"
+                  height="11"
+                  rx="2"
+                  fill="${color}"
+                />
+              `;
+            });
+
+            svg += `
+              <text
+                x="${left + 105}"
+                y="${legendY}"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                More
+              </text>
+            `;
+
+            svg += `</svg>`;
+
+            fs.mkdirSync("assets", { recursive: true });
+
+            fs.writeFileSync(
+              "assets/contribution-calendar.svg",
+              svg
+            );
+
+            console.log(
+              `Generated calendar with ${calendar.totalContributions} contributions.`
+            );
+
+      - name: Commit updated calendar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add assets/contribution-calendar.svg
+
+          if git diff --cached --quiet; then
+            echo "No contribution changes."
+          else
+            git commit -m "chore: update contribution calendar"
+            git push
+          fi
