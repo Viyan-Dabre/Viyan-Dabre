@@ -1,4 +1,4 @@
-name: Update Contribution Calendar
+name: Update GitHub Activity
 
 on:
   schedule:
@@ -9,20 +9,18 @@ permissions:
   contents: write
 
 jobs:
-  update-calendar:
+  update:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Generate contribution calendar and GitHub stats
+      - name: Generate GitHub graphics
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require("fs");
-
             const username = "Viyan-Dabre";
 
             const query = `
@@ -32,9 +30,7 @@ jobs:
                     totalCommitContributions
                     totalIssueContributions
                     totalPullRequestContributions
-                    totalRepositoryContributions
                     totalRepositoriesWithContributedCommits
-
                     contributionCalendar {
                       totalContributions
                       weeks {
@@ -50,53 +46,28 @@ jobs:
               }
             `;
 
-            const result = await github.graphql(query, {
-              login: username
-            });
-
-            const user = result.user;
-            const collection = user.contributionsCollection;
-            const calendar = collection.contributionCalendar;
+            const { user } = await github.graphql(query, { login: username });
+            const c = user.contributionsCollection;
+            const calendar = c.contributionCalendar;
             const weeks = calendar.weeks;
 
-            /*
-             * ============================================================
-             * CONTRIBUTION DATA
-             * ============================================================
-             */
-
-            const allDays = weeks
-              .flatMap((week) => week.contributionDays)
+            const days = weeks
+              .flatMap(w => w.contributionDays)
               .sort((a, b) => a.date.localeCompare(b.date));
 
             const total = calendar.totalContributions;
-            const commits = collection.totalCommitContributions;
-            const issues = collection.totalIssueContributions;
-            const pullRequests = collection.totalPullRequestContributions;
-            const repositories =
-              collection.totalRepositoriesWithContributedCommits;
+            const commits = c.totalCommitContributions;
+            const pullRequests = c.totalPullRequestContributions;
+            const issues = c.totalIssueContributions;
+            const repositories = c.totalRepositoriesWithContributedCommits;
 
-            /*
-             * ============================================================
-             * LONGEST STREAK
-             * ============================================================
-             */
+            // Longest streak
+            let longest = 0, longestStart = "", longestEnd = "";
+            let run = 0, runStart = "";
 
-            let longest = 0;
-            let longestStart = "";
-            let longestEnd = "";
-
-            let run = 0;
-            let runStart = "";
-
-            for (let i = 0; i < allDays.length; i++) {
-              const day = allDays[i];
-
+            for (const day of days) {
               if (day.contributionCount > 0) {
-                if (run === 0) {
-                  runStart = day.date;
-                }
-
+                if (!run) runStart = day.date;
                 run++;
 
                 if (run > longest) {
@@ -110,54 +81,27 @@ jobs:
               }
             }
 
-            /*
-             * ============================================================
-             * CURRENT STREAK
-             * ============================================================
-             *
-             * If today has no contribution yet, yesterday can still be
-             * considered part of the current streak.
-             */
-
-            let current = 0;
-            let currentStart = "";
-            let currentEnd = "";
+            // Current streak
+            let current = 0, currentStart = "", currentEnd = "";
+            let i = days.length - 1;
 
             const today = new Date().toISOString().slice(0, 10);
 
-            let startIndex = allDays.length - 1;
-
             if (
-              allDays.length > 0 &&
-              allDays[allDays.length - 1].date === today &&
-              allDays[allDays.length - 1].contributionCount === 0
+              i >= 0 &&
+              days[i].date === today &&
+              days[i].contributionCount === 0
             ) {
-              startIndex--;
+              i--;
             }
 
-            for (let i = startIndex; i >= 0; i--) {
-              const day = allDays[i];
-
-              if (day.contributionCount > 0) {
-                current++;
-
-                if (!currentEnd) {
-                  currentEnd = day.date;
-                }
-
-                currentStart = day.date;
-              } else {
-                break;
-              }
+            for (; i >= 0 && days[i].contributionCount > 0; i--) {
+              current++;
+              currentEnd ||= days[i].date;
+              currentStart = days[i].date;
             }
 
-            /*
-             * ============================================================
-             * HELPERS
-             * ============================================================
-             */
-
-            const escapeXml = (value) =>
+            const esc = value =>
               String(value)
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
@@ -165,33 +109,27 @@ jobs:
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&apos;");
 
-            const formatDate = (date) => {
-              if (!date) return "—";
-
-              const d = new Date(`${date}T00:00:00Z`);
-
-              return d.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                timeZone: "UTC"
-              });
-            };
+            const date = value =>
+              value
+                ? new Date(`${value}T00:00:00Z`).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      timeZone: "UTC"
+                    }
+                  )
+                : "—";
 
             /*
-             * ============================================================
-             * CONTRIBUTION CALENDAR
-             * ============================================================
+             * Contribution calendar
              */
-
-            const cellSize = 12;
-            const gap = 3;
-            const cell = cellSize + gap;
-
+            const cell = 15;
+            const size = 12;
             const left = 42;
             const top = 58;
-
-            const width = left + (weeks.length * cell) + 12;
+            const width = left + weeks.length * cell + 12;
             const height = 205;
 
             const colors = {
@@ -202,151 +140,81 @@ jobs:
               FOURTH_QUARTILE: "#39D353"
             };
 
-            const monthNames = [
+            const months = [
               "Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
             ];
 
-            let svg = `
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="${width}"
-              height="${height}"
-              viewBox="0 0 ${width} ${height}"
-              role="img"
-              aria-label="${escapeXml(total)} contributions in the last year"
-            >
+            let calendarSvg = `
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="${width}" height="${height}"
+                   viewBox="0 0 ${width} ${height}"
+                   role="img"
+                   aria-label="${esc(total)} contributions in the last year">
 
-              <rect
-                width="100%"
-                height="100%"
-                rx="10"
-                fill="#0D1117"
-                stroke="#30363D"
-              />
+                <rect width="100%" height="100%" rx="10"
+                      fill="#0D1117" stroke="#30363D"/>
 
-              <text
-                x="18"
-                y="24"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="14"
-                font-weight="600"
-              >
-                ${escapeXml(total)} contributions in the last year
-              </text>
+                <text x="18" y="24"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="14"
+                      font-weight="600">
+                  ${total} contributions in the last year
+                </text>
             `;
-
-            /*
-             * Month labels
-             */
 
             let lastMonth = "";
 
-            weeks.forEach((week, weekIndex) => {
-              const firstDay = week.contributionDays[0];
+            weeks.forEach((week, wi) => {
+              const first = week.contributionDays[0];
+              if (!first) return;
 
-              if (!firstDay) return;
-
-              const date = new Date(firstDay.date + "T00:00:00");
-              const month = monthNames[date.getMonth()];
+              const month =
+                months[new Date(`${first.date}T00:00:00Z`).getUTCMonth()];
 
               if (month !== lastMonth) {
-                svg += `
-                  <text
-                    x="${left + weekIndex * cell}"
-                    y="46"
-                    fill="#8B949E"
-                    font-family="Arial, sans-serif"
-                    font-size="10"
-                  >
+                calendarSvg += `
+                  <text x="${left + wi * cell}" y="46"
+                        fill="#8B949E"
+                        font-family="Arial"
+                        font-size="10">
                     ${month}
-                  </text>
-                `;
-
+                  </text>`;
                 lastMonth = month;
               }
             });
 
-            /*
-             * Weekday labels
-             */
-
-            const weekdays = [
-              ["Mon", 82],
-              ["Wed", 112],
-              ["Fri", 142]
-            ];
-
-            for (const [label, y] of weekdays) {
-              svg += `
-                <text
-                  x="10"
-                  y="${y}"
-                  fill="#8B949E"
-                  font-family="Arial, sans-serif"
-                  font-size="10"
-                >
+            [["Mon", 1], ["Wed", 3], ["Fri", 5]].forEach(([label, row]) => {
+              calendarSvg += `
+                <text x="10" y="${top + row * cell + 10}"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="10">
                   ${label}
-                </text>
-              `;
-            }
+                </text>`;
+            });
 
-            /*
-             * Contribution cells
-             */
+            weeks.forEach((week, wi) => {
+              week.contributionDays.forEach(day => {
+                const row =
+                  new Date(`${day.date}T00:00:00Z`).getUTCDay();
 
-            weeks.forEach((week, weekIndex) => {
-              week.contributionDays.forEach((day) => {
-                const date = new Date(day.date + "T00:00:00");
-
-                // Sunday = 0, matching GitHub's calendar grid.
-                const row = date.getDay();
-
-                const x = left + weekIndex * cell;
-                const y = top + row * cell;
-
-                const fill =
-                  colors[day.contributionLevel] || colors.NONE;
-
-                svg += `
-                  <rect
-                    x="${x}"
-                    y="${y}"
-                    width="${cellSize}"
-                    height="${cellSize}"
-                    rx="2"
-                    fill="${fill}"
-                  >
+                calendarSvg += `
+                  <rect x="${left + wi * cell}"
+                        y="${top + row * cell}"
+                        width="${size}"
+                        height="${size}"
+                        rx="2"
+                        fill="${colors[day.contributionLevel] || colors.NONE}">
                     <title>
-                      ${escapeXml(day.contributionCount)}
-                      contribution${day.contributionCount === 1 ? "" : "s"}
-                      on ${escapeXml(day.date)}
+                      ${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${esc(day.date)}
                     </title>
-                  </rect>
-                `;
+                  </rect>`;
               });
             });
 
-            /*
-             * Legend
-             */
-
-            const legendY = 190;
-
-            svg += `
-              <text
-                x="${left}"
-                y="${legendY}"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
-                Less
-              </text>
-            `;
-
-            const legendColors = [
+            const legend = [
               "#161B22",
               "#0E4429",
               "#006D32",
@@ -354,330 +222,210 @@ jobs:
               "#39D353"
             ];
 
-            legendColors.forEach((color, index) => {
-              svg += `
-                <rect
-                  x="${left + 28 + index * 15}"
-                  y="${legendY - 9}"
-                  width="11"
-                  height="11"
-                  rx="2"
-                  fill="${color}"
-                />
-              `;
+            calendarSvg += `
+              <text x="${left}" y="190"
+                    fill="#8B949E"
+                    font-family="Arial"
+                    font-size="10">
+                Less
+              </text>
+            `;
+
+            legend.forEach((color, i) => {
+              calendarSvg += `
+                <rect x="${left + 28 + i * 15}"
+                      y="181"
+                      width="11"
+                      height="11"
+                      rx="2"
+                      fill="${color}"/>`;
             });
 
-            svg += `
-              <text
-                x="${left + 105}"
-                y="${legendY}"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
+            calendarSvg += `
+              <text x="${left + 105}" y="190"
+                    fill="#8B949E"
+                    font-family="Arial"
+                    font-size="10">
                 More
               </text>
+              </svg>
             `;
 
-            svg += `</svg>`;
-
             /*
-             * ============================================================
-             * GITHUB STATS CARD
-             * ============================================================
+             * GitHub statistics card
+             *
+             * IMPORTANT:
+             * profile-card.svg is NOT touched.
              */
-
             const statsSvg = `
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="820"
-              height="210"
-              viewBox="0 0 820 210"
-              role="img"
-              aria-label="GitHub statistics for ${escapeXml(username)}"
-            >
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="820" height="210"
+                   viewBox="0 0 820 210"
+                   role="img"
+                   aria-label="GitHub statistics for ${esc(username)}">
 
-              <rect
-                width="820"
-                height="210"
-                rx="12"
-                fill="#0D1117"
-                stroke="#30363D"
-              />
+                <rect width="100%" height="100%" rx="12"
+                      fill="#0D1117" stroke="#30363D"/>
 
-              <text
-                x="28"
-                y="35"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="16"
-                font-weight="600"
-              >
-                GitHub Stats
-              </text>
+                <text x="28" y="35"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="16"
+                      font-weight="600">
+                  GitHub Stats
+                </text>
 
-              <!-- Total Contributions -->
+                <text x="115" y="85"
+                      text-anchor="middle"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="26"
+                      font-weight="700">
+                  ${total}
+                </text>
 
-              <text
-                x="115"
-                y="85"
-                text-anchor="middle"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="26"
-                font-weight="700"
-              >
-                ${total}
-              </text>
+                <text x="115" y="108"
+                      text-anchor="middle"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="11">
+                  Total Contributions
+                </text>
 
-              <text
-                x="115"
-                y="108"
-                text-anchor="middle"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="11"
-              >
-                Total Contributions
-              </text>
+                <text x="410" y="85"
+                      text-anchor="middle"
+                      fill="#C9A76A"
+                      font-family="Arial"
+                      font-size="26"
+                      font-weight="700">
+                  ${current}
+                </text>
 
-              <!-- Current Streak -->
+                <text x="410" y="108"
+                      text-anchor="middle"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="11">
+                  Current Streak
+                </text>
 
-              <text
-                x="410"
-                y="85"
-                text-anchor="middle"
-                fill="#C9A76A"
-                font-family="Arial, sans-serif"
-                font-size="26"
-                font-weight="700"
-              >
-                ${current}
-              </text>
+                <text x="705" y="85"
+                      text-anchor="middle"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="26"
+                      font-weight="700">
+                  ${longest}
+                </text>
 
-              <text
-                x="410"
-                y="108"
-                text-anchor="middle"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="11"
-              >
-                Current Streak
-              </text>
+                <text x="705" y="108"
+                      text-anchor="middle"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="11">
+                  Longest Streak
+                </text>
 
-              <!-- Longest Streak -->
+                <line x1="273" y1="58" x2="273" y2="125"
+                      stroke="#30363D"/>
+                <line x1="547" y1="58" x2="547" y2="125"
+                      stroke="#30363D"/>
 
-              <text
-                x="705"
-                y="85"
-                text-anchor="middle"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="26"
-                font-weight="700"
-              >
-                ${longest}
-              </text>
+                <text x="90" y="155"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="15"
+                      font-weight="600">
+                  ${commits}
+                </text>
+                <text x="90" y="175"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="10">
+                  Commits
+                </text>
 
-              <text
-                x="705"
-                y="108"
-                text-anchor="middle"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="11"
-              >
-                Longest Streak
-              </text>
+                <text x="280" y="155"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="15"
+                      font-weight="600">
+                  ${pullRequests}
+                </text>
+                <text x="280" y="175"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="10">
+                  Pull Requests
+                </text>
 
-              <line
-                x1="273"
-                y1="58"
-                x2="273"
-                y2="125"
-                stroke="#30363D"
-              />
+                <text x="490" y="155"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="15"
+                      font-weight="600">
+                  ${issues}
+                </text>
+                <text x="490" y="175"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="10">
+                  Issues
+                </text>
 
-              <line
-                x1="547"
-                y1="58"
-                x2="547"
-                y2="125"
-                stroke="#30363D"
-              />
+                <text x="690" y="155"
+                      fill="#E6EDF3"
+                      font-family="Arial"
+                      font-size="15"
+                      font-weight="600">
+                  ${repositories}
+                </text>
+                <text x="690" y="175"
+                      fill="#8B949E"
+                      font-family="Arial"
+                      font-size="10">
+                  Repositories
+                </text>
 
-              <!-- Commits -->
-
-              <text
-                x="90"
-                y="155"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="15"
-                font-weight="600"
-              >
-                ${commits}
-              </text>
-
-              <text
-                x="90"
-                y="175"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
-                Commits
-              </text>
-
-              <!-- Pull Requests -->
-
-              <text
-                x="280"
-                y="155"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="15"
-                font-weight="600"
-              >
-                ${pullRequests}
-              </text>
-
-              <text
-                x="280"
-                y="175"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
-                Pull Requests
-              </text>
-
-              <!-- Issues -->
-
-              <text
-                x="490"
-                y="155"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="15"
-                font-weight="600"
-              >
-                ${issues}
-              </text>
-
-              <text
-                x="490"
-                y="175"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
-                Issues
-              </text>
-
-              <!-- Repositories -->
-
-              <text
-                x="690"
-                y="155"
-                fill="#E6EDF3"
-                font-family="Arial, sans-serif"
-                font-size="15"
-                font-weight="600"
-              >
-                ${repositories}
-              </text>
-
-              <text
-                x="690"
-                y="175"
-                fill="#8B949E"
-                font-family="Arial, sans-serif"
-                font-size="10"
-              >
-                Repositories
-              </text>
-
-              <!-- Current streak dates -->
-
-              <text
-                x="410"
-                y="198"
-                text-anchor="middle"
-                fill="#6B6D74"
-                font-family="Arial, sans-serif"
-                font-size="9"
-              >
-                ${
-                  current
-                    ? `${formatDate(currentStart)} – ${formatDate(currentEnd)}`
-                    : "No current streak"
-                }
-              </text>
-
-            </svg>
+                <text x="410" y="198"
+                      text-anchor="middle"
+                      fill="#6B6D74"
+                      font-family="Arial"
+                      font-size="9">
+                  ${current ? `${date(currentStart)} – ${date(currentEnd)}` : "No current streak"}
+                </text>
+              </svg>
             `;
-
-            /*
-             * ============================================================
-             * WRITE GENERATED ASSETS
-             * ============================================================
-             */
 
             fs.mkdirSync("assets", { recursive: true });
 
             fs.writeFileSync(
               "assets/contribution-calendar.svg",
-              svg
+              calendarSvg
             );
 
             fs.writeFileSync(
-              "assets/profile-card.svg",
+              "assets/github-stats.svg",
               statsSvg
             );
 
-            console.log(
-              `Generated GitHub graphics for ${username}.`
-            );
+            console.log(`Total contributions: ${total}`);
+            console.log(`Current streak: ${current}`);
+            console.log(`Longest streak: ${longest}`);
+            console.log(`Commits: ${commits}`);
+            console.log(`Pull requests: ${pullRequests}`);
+            console.log(`Issues: ${issues}`);
+            console.log(`Repositories: ${repositories}`);
 
-            console.log(
-              `Total contributions: ${total}`
-            );
-
-            console.log(
-              `Current streak: ${current}`
-            );
-
-            console.log(
-              `Longest streak: ${longest}`
-            );
-
-            console.log(
-              `Commits: ${commits}`
-            );
-
-            console.log(
-              `Pull requests: ${pullRequests}`
-            );
-
-            console.log(
-              `Issues: ${issues}`
-            );
-
-            console.log(
-              `Repositories: ${repositories}`
-            );
-
-      - name: Commit updated graphics
+      - name: Commit generated graphics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add assets/contribution-calendar.svg assets/profile-card.svg
+          git add assets/contribution-calendar.svg assets/github-stats.svg
 
           if git diff --cached --quiet; then
-            echo "No contribution changes."
+            echo "No changes."
           else
             git commit -m "chore: update GitHub activity"
             git push
