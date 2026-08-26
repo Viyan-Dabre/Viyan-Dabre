@@ -49,6 +49,7 @@ Right now the focus has shifted toward **agentic automation** — orchestrating 
 <br/>
 
 <table width="100%">
+
 <tr>
 
 <td width="40%" valign="middle">
@@ -84,6 +85,7 @@ Right now the focus has shifted toward **agentic automation** — orchestrating 
 </td>
 
 </tr>
+
 </table>
 
 <br/>
@@ -103,69 +105,99 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 
 ## `./stack`
 
-<table>
+<table width="100%">
 
 <tr>
 
-<td valign="top" width="25%">
+<td width="25%" valign="top">
 
-**Languages**
+### Languages
 
-<br/>
+<br/><br/>
 
 ![Java](https://img.shields.io/badge/Java-111217?style=flat-square&logo=openjdk&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![Python](https://img.shields.io/badge/Python-111217?style=flat-square&logo=python&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 ![C++](https://img.shields.io/badge/C%2B%2B-111217?style=flat-square&logo=cplusplus&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![JavaScript](https://img.shields.io/badge/JavaScript-111217?style=flat-square&logo=javascript&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 </td>
 
-<td valign="top" width="25%">
+<td width="25%" valign="top">
 
-**Web**
+### Web
 
-<br/>
+<br/><br/>
 
 ![React](https://img.shields.io/badge/React-111217?style=flat-square&logo=react&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![Node.js](https://img.shields.io/badge/Node.js-111217?style=flat-square&logo=node.js&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 ![HTML5](https://img.shields.io/badge/HTML5-111217?style=flat-square&logo=html5&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![CSS3](https://img.shields.io/badge/CSS3-111217?style=flat-square&logo=css3&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 </td>
 
-<td valign="top" width="25%">
+<td width="25%" valign="top">
 
-**AI / Automation**
+### AI / Automation
 
-<br/>
+<br/><br/>
 
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-111217?style=flat-square&logo=scikitlearn&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![n8n](https://img.shields.io/badge/n8n-111217?style=flat-square&logo=n8n&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 ![MySQL](https://img.shields.io/badge/MySQL-111217?style=flat-square&logo=mysql&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/><br/>
+
 </td>
 
-<td valign="top" width="25%">
+<td width="25%" valign="top">
 
-**Tools**
+### Tools
 
-<br/>
+<br/><br/>
 
 ![Git](https://img.shields.io/badge/Git-111217?style=flat-square&logo=git&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![GitHub](https://img.shields.io/badge/GitHub-111217?style=flat-square&logo=github&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 ![VS Code](https://img.shields.io/badge/VS_Code-111217?style=flat-square&logo=visualstudiocode&logoColor=E8E6E1&labelColor=0A0A0B)
 
+<br/><br/>
+
 ![Figma](https://img.shields.io/badge/Figma-111217?style=flat-square&logo=figma&logoColor=E8E6E1&labelColor=0A0A0B)
+
+<br/><br/>
 
 </td>
 
