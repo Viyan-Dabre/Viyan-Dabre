@@ -2,7 +2,7 @@ name: Update Contribution Calendar
 
 on:
   schedule:
-    - cron: "17 4 * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate contribution calendar
+      - name: Generate contribution calendar and GitHub stats
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -29,6 +29,12 @@ jobs:
               query($login: String!) {
                 user(login: $login) {
                   contributionsCollection {
+                    totalCommitContributions
+                    totalIssueContributions
+                    totalPullRequestContributions
+                    totalRepositoryContributions
+                    totalRepositoriesWithContributedCommits
+
                     contributionCalendar {
                       totalContributions
                       weeks {
@@ -48,16 +54,140 @@ jobs:
               login: username
             });
 
-            const calendar =
-              result.user.contributionsCollection.contributionCalendar;
-
+            const user = result.user;
+            const collection = user.contributionsCollection;
+            const calendar = collection.contributionCalendar;
             const weeks = calendar.weeks;
+
+            /*
+             * ============================================================
+             * CONTRIBUTION DATA
+             * ============================================================
+             */
+
+            const allDays = weeks
+              .flatMap((week) => week.contributionDays)
+              .sort((a, b) => a.date.localeCompare(b.date));
+
+            const total = calendar.totalContributions;
+            const commits = collection.totalCommitContributions;
+            const issues = collection.totalIssueContributions;
+            const pullRequests = collection.totalPullRequestContributions;
+            const repositories =
+              collection.totalRepositoriesWithContributedCommits;
+
+            /*
+             * ============================================================
+             * LONGEST STREAK
+             * ============================================================
+             */
+
+            let longest = 0;
+            let longestStart = "";
+            let longestEnd = "";
+
+            let run = 0;
+            let runStart = "";
+
+            for (let i = 0; i < allDays.length; i++) {
+              const day = allDays[i];
+
+              if (day.contributionCount > 0) {
+                if (run === 0) {
+                  runStart = day.date;
+                }
+
+                run++;
+
+                if (run > longest) {
+                  longest = run;
+                  longestStart = runStart;
+                  longestEnd = day.date;
+                }
+              } else {
+                run = 0;
+                runStart = "";
+              }
+            }
+
+            /*
+             * ============================================================
+             * CURRENT STREAK
+             * ============================================================
+             *
+             * If today has no contribution yet, yesterday can still be
+             * considered part of the current streak.
+             */
+
+            let current = 0;
+            let currentStart = "";
+            let currentEnd = "";
+
+            const today = new Date().toISOString().slice(0, 10);
+
+            let startIndex = allDays.length - 1;
+
+            if (
+              allDays.length > 0 &&
+              allDays[allDays.length - 1].date === today &&
+              allDays[allDays.length - 1].contributionCount === 0
+            ) {
+              startIndex--;
+            }
+
+            for (let i = startIndex; i >= 0; i--) {
+              const day = allDays[i];
+
+              if (day.contributionCount > 0) {
+                current++;
+
+                if (!currentEnd) {
+                  currentEnd = day.date;
+                }
+
+                currentStart = day.date;
+              } else {
+                break;
+              }
+            }
+
+            /*
+             * ============================================================
+             * HELPERS
+             * ============================================================
+             */
+
+            const escapeXml = (value) =>
+              String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
+
+            const formatDate = (date) => {
+              if (!date) return "—";
+
+              const d = new Date(`${date}T00:00:00Z`);
+
+              return d.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                timeZone: "UTC"
+              });
+            };
+
+            /*
+             * ============================================================
+             * CONTRIBUTION CALENDAR
+             * ============================================================
+             */
 
             const cellSize = 12;
             const gap = 3;
             const cell = cellSize + gap;
 
-            // Layout
             const left = 42;
             const top = 58;
 
@@ -84,7 +214,7 @@ jobs:
               height="${height}"
               viewBox="0 0 ${width} ${height}"
               role="img"
-              aria-label="${calendar.totalContributions} contributions in the last year"
+              aria-label="${escapeXml(total)} contributions in the last year"
             >
 
               <rect
@@ -95,7 +225,6 @@ jobs:
                 stroke="#30363D"
               />
 
-              <!-- Contribution count -->
               <text
                 x="18"
                 y="24"
@@ -104,11 +233,14 @@ jobs:
                 font-size="14"
                 font-weight="600"
               >
-                ${calendar.totalContributions} contributions in the last year
+                ${escapeXml(total)} contributions in the last year
               </text>
             `;
 
-            // Month labels
+            /*
+             * Month labels
+             */
+
             let lastMonth = "";
 
             weeks.forEach((week, weekIndex) => {
@@ -136,7 +268,10 @@ jobs:
               }
             });
 
-            // Weekday labels
+            /*
+             * Weekday labels
+             */
+
             const weekdays = [
               ["Mon", 82],
               ["Wed", 112],
@@ -157,12 +292,15 @@ jobs:
               `;
             }
 
-            // Contribution cells
+            /*
+             * Contribution cells
+             */
+
             weeks.forEach((week, weekIndex) => {
               week.contributionDays.forEach((day) => {
                 const date = new Date(day.date + "T00:00:00");
 
-                // Sunday = 0, matching GitHub's calendar grid
+                // Sunday = 0, matching GitHub's calendar grid.
                 const row = date.getDay();
 
                 const x = left + weekIndex * cell;
@@ -181,14 +319,19 @@ jobs:
                     fill="${fill}"
                   >
                     <title>
-                      ${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${day.date}
+                      ${escapeXml(day.contributionCount)}
+                      contribution${day.contributionCount === 1 ? "" : "s"}
+                      on ${escapeXml(day.date)}
                     </title>
                   </rect>
                 `;
               });
             });
 
-            // Legend
+            /*
+             * Legend
+             */
+
             const legendY = 190;
 
             svg += `
@@ -238,6 +381,250 @@ jobs:
 
             svg += `</svg>`;
 
+            /*
+             * ============================================================
+             * GITHUB STATS CARD
+             * ============================================================
+             */
+
+            const statsSvg = `
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="820"
+              height="210"
+              viewBox="0 0 820 210"
+              role="img"
+              aria-label="GitHub statistics for ${escapeXml(username)}"
+            >
+
+              <rect
+                width="820"
+                height="210"
+                rx="12"
+                fill="#0D1117"
+                stroke="#30363D"
+              />
+
+              <text
+                x="28"
+                y="35"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="16"
+                font-weight="600"
+              >
+                GitHub Stats
+              </text>
+
+              <!-- Total Contributions -->
+
+              <text
+                x="115"
+                y="85"
+                text-anchor="middle"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="26"
+                font-weight="700"
+              >
+                ${total}
+              </text>
+
+              <text
+                x="115"
+                y="108"
+                text-anchor="middle"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="11"
+              >
+                Total Contributions
+              </text>
+
+              <!-- Current Streak -->
+
+              <text
+                x="410"
+                y="85"
+                text-anchor="middle"
+                fill="#C9A76A"
+                font-family="Arial, sans-serif"
+                font-size="26"
+                font-weight="700"
+              >
+                ${current}
+              </text>
+
+              <text
+                x="410"
+                y="108"
+                text-anchor="middle"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="11"
+              >
+                Current Streak
+              </text>
+
+              <!-- Longest Streak -->
+
+              <text
+                x="705"
+                y="85"
+                text-anchor="middle"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="26"
+                font-weight="700"
+              >
+                ${longest}
+              </text>
+
+              <text
+                x="705"
+                y="108"
+                text-anchor="middle"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="11"
+              >
+                Longest Streak
+              </text>
+
+              <line
+                x1="273"
+                y1="58"
+                x2="273"
+                y2="125"
+                stroke="#30363D"
+              />
+
+              <line
+                x1="547"
+                y1="58"
+                x2="547"
+                y2="125"
+                stroke="#30363D"
+              />
+
+              <!-- Commits -->
+
+              <text
+                x="90"
+                y="155"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="15"
+                font-weight="600"
+              >
+                ${commits}
+              </text>
+
+              <text
+                x="90"
+                y="175"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                Commits
+              </text>
+
+              <!-- Pull Requests -->
+
+              <text
+                x="280"
+                y="155"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="15"
+                font-weight="600"
+              >
+                ${pullRequests}
+              </text>
+
+              <text
+                x="280"
+                y="175"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                Pull Requests
+              </text>
+
+              <!-- Issues -->
+
+              <text
+                x="490"
+                y="155"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="15"
+                font-weight="600"
+              >
+                ${issues}
+              </text>
+
+              <text
+                x="490"
+                y="175"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                Issues
+              </text>
+
+              <!-- Repositories -->
+
+              <text
+                x="690"
+                y="155"
+                fill="#E6EDF3"
+                font-family="Arial, sans-serif"
+                font-size="15"
+                font-weight="600"
+              >
+                ${repositories}
+              </text>
+
+              <text
+                x="690"
+                y="175"
+                fill="#8B949E"
+                font-family="Arial, sans-serif"
+                font-size="10"
+              >
+                Repositories
+              </text>
+
+              <!-- Current streak dates -->
+
+              <text
+                x="410"
+                y="198"
+                text-anchor="middle"
+                fill="#6B6D74"
+                font-family="Arial, sans-serif"
+                font-size="9"
+              >
+                ${
+                  current
+                    ? `${formatDate(currentStart)} – ${formatDate(currentEnd)}`
+                    : "No current streak"
+                }
+              </text>
+
+            </svg>
+            `;
+
+            /*
+             * ============================================================
+             * WRITE GENERATED ASSETS
+             * ============================================================
+             */
+
             fs.mkdirSync("assets", { recursive: true });
 
             fs.writeFileSync(
@@ -245,20 +632,53 @@ jobs:
               svg
             );
 
-            console.log(
-              `Generated calendar with ${calendar.totalContributions} contributions.`
+            fs.writeFileSync(
+              "assets/profile-card.svg",
+              statsSvg
             );
 
-      - name: Commit updated calendar
+            console.log(
+              `Generated GitHub graphics for ${username}.`
+            );
+
+            console.log(
+              `Total contributions: ${total}`
+            );
+
+            console.log(
+              `Current streak: ${current}`
+            );
+
+            console.log(
+              `Longest streak: ${longest}`
+            );
+
+            console.log(
+              `Commits: ${commits}`
+            );
+
+            console.log(
+              `Pull requests: ${pullRequests}`
+            );
+
+            console.log(
+              `Issues: ${issues}`
+            );
+
+            console.log(
+              `Repositories: ${repositories}`
+            );
+
+      - name: Commit updated graphics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add assets/contribution-calendar.svg
+          git add assets/contribution-calendar.svg assets/profile-card.svg
 
           if git diff --cached --quiet; then
             echo "No contribution changes."
           else
-            git commit -m "chore: update contribution calendar"
+            git commit -m "chore: update GitHub activity"
             git push
           fi
