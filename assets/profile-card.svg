@@ -1,64 +1,226 @@
-<svg viewBox="0 0 480 256" xmlns="http://www.w3.org/2000/svg" width="480" height="256">
-  <defs>
-    <linearGradient id="cardBorder" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#C9A76A" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#5C8A8C" stop-opacity="0.35"/>
-    </linearGradient>
-  </defs>
 
-  <rect x="0.5" y="0.5" width="479" height="255" rx="10" fill="#111217" stroke="url(#cardBorder)" stroke-width="1"/>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="820"
+  height="210"
+  viewBox="0 0 820 210"
+  role="img"
+  aria-label="GitHub statistics for Viyan-Dabre"
+>
 
-  <!-- header bar -->
-  <text x="40" y="34" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="12" fill="#C9A76A" letter-spacing="3" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="0.1s" dur="0.5s" fill="freeze"/>
-    PROFILE
+  <rect
+    width="820"
+    height="210"
+    rx="12"
+    fill="#0D1117"
+    stroke="#30363D"
+  />
+
+  <text
+    x="28"
+    y="35"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="16"
+    font-weight="600"
+  >
+    GitHub Stats
   </text>
-  <text x="440" y="34" text-anchor="end" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="11" fill="#6B6D74" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="0.1s" dur="0.5s" fill="freeze"/>
-    ~/viyan-dabre
-  </text>
-  <line x1="24" y1="48" x2="456" y2="48" stroke="#2A2C34" stroke-width="1" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="0.3s" dur="0.4s" fill="freeze"/>
-  </line>
 
-  
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="1.00s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="66" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">NAME</text>
-    <text x="180" y="66" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">Viyan Dabre</text>
-  </g>
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="1.22s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="92" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">ROLE</text>
-    <text x="180" y="92" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">IT Undergrad (B.E, 2027)</text>
-  </g>
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="1.44s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="118" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">FOCUS</text>
-    <text x="180" y="118" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">Full-Stack Dev / AI Automation</text>
-  </g>
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="1.66s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="144" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">BUILDING</text>
-    <text x="180" y="144" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">AI Agent Automation System</text>
-  </g>
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="1.88s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="170" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">STACK</text>
-    <text x="180" y="170" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">Java . Python . React . Node</text>
-  </g>
-  <g opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="2.10s" dur="0.4s" fill="freeze"/>
-    <text x="40" y="196" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#6B6D74" letter-spacing="1">BASE</text>
-    <text x="180" y="196" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="13" fill="#E8E6E1">Mumbai, India</text>
-  </g>
+  <!-- Total Contributions -->
 
-  <!-- footer status -->
-  <circle cx="40" cy="236" r="3" fill="#5C8A8C" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="2.52s" dur="0.4s" fill="freeze"/>
-  </circle>
-  <text x="52" y="240" font-family="ui-monospace, 'JetBrains Mono', 'Fira Code', monospace" font-size="11" fill="#6B6D74" opacity="0">
-    <animate attributeName="opacity" values="0;1" begin="2.52s" dur="0.4s" fill="freeze"/>
-    open to internship opportunities
+  <text
+    x="115"
+    y="85"
+    text-anchor="middle"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="26"
+    font-weight="700"
+  >
+    32
   </text>
+
+  <text
+    x="115"
+    y="108"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="11"
+  >
+    Total Contributions
+  </text>
+
+  <!-- Current Streak -->
+
+  <text
+    x="410"
+    y="85"
+    text-anchor="middle"
+    fill="#C9A76A"
+    font-family="Arial, sans-serif"
+    font-size="26"
+    font-weight="700"
+  >
+    3
+  </text>
+
+  <text
+    x="410"
+    y="108"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="11"
+  >
+    Current Streak
+  </text>
+
+  <!-- Longest Streak -->
+
+  <text
+    x="705"
+    y="85"
+    text-anchor="middle"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="26"
+    font-weight="700"
+  >
+    3
+  </text>
+
+  <text
+    x="705"
+    y="108"
+    text-anchor="middle"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="11"
+  >
+    Longest Streak
+  </text>
+
+  <line
+    x1="273"
+    y1="58"
+    x2="273"
+    y2="125"
+    stroke="#30363D"
+  />
+
+  <line
+    x1="547"
+    y1="58"
+    x2="547"
+    y2="125"
+    stroke="#30363D"
+  />
+
+  <!-- Commits -->
+
+  <text
+    x="90"
+    y="155"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    font-weight="600"
+  >
+    21
+  </text>
+
+  <text
+    x="90"
+    y="175"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="10"
+  >
+    Commits
+  </text>
+
+  <!-- Pull Requests -->
+
+  <text
+    x="280"
+    y="155"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    font-weight="600"
+  >
+    0
+  </text>
+
+  <text
+    x="280"
+    y="175"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="10"
+  >
+    Pull Requests
+  </text>
+
+  <!-- Issues -->
+
+  <text
+    x="490"
+    y="155"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    font-weight="600"
+  >
+    0
+  </text>
+
+  <text
+    x="490"
+    y="175"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="10"
+  >
+    Issues
+  </text>
+
+  <!-- Repositories -->
+
+  <text
+    x="690"
+    y="155"
+    fill="#E6EDF3"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    font-weight="600"
+  >
+    4
+  </text>
+
+  <text
+    x="690"
+    y="175"
+    fill="#8B949E"
+    font-family="Arial, sans-serif"
+    font-size="10"
+  >
+    Repositories
+  </text>
+
+  <!-- Current streak dates -->
+
+  <text
+    x="410"
+    y="198"
+    text-anchor="middle"
+    fill="#6B6D74"
+    font-family="Arial, sans-serif"
+    font-size="9"
+  >
+    Aug 24, 2026 – Aug 26, 2026
+  </text>
+
 </svg>
