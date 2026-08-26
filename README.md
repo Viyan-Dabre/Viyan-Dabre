@@ -170,10 +170,6 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 
 <div align="center">
 
-<img src="assets/profile-card.svg" width="100%" alt="GitHub Stats" />
-
-<br/><br/>
-
 <img src="assets/contribution-calendar.svg" width="100%" alt="GitHub contribution calendar" />
 
 <br/><br/>
