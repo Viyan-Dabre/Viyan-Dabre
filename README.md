@@ -170,7 +170,7 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 
 <div align="center">
 
-<img src="https://streak-stats.demolab.com/?user=Viyan-Dabre&hide_border=true&background=0A0A0B&stroke=0A0A0B&ring=C9A76A&fire=C9A76A&currStreakLabel=E8E6E1&sideLabels=E8E6E1&currStreakNum=E8E6E1&sideNums=E8E6E1&dates=6B6D74" height="165" alt="GitHub contribution streak" />
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=Viyan-Dabre&hide_border=true&background=0A0A0B&stroke=0A0A0B&ring=C9A76A&fire=C9A76A&currStreakLabel=E8E6E1&sideLabels=E8E6E1&currStreakNum=E8E6E1&sideNums=E8E6E1&dates=6B6D74" height="165" alt="GitHub contribution streak" />
 
 <br/><br/>
 
