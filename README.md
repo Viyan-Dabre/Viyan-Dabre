@@ -25,9 +25,11 @@
 </a>
 
 <!-- Portfolio badge: add once live
+
 <a href="PORTFOLIO_URL">
   <img src="https://img.shields.io/badge/Portfolio-visit-111217?style=flat-square&logo=safari&logoColor=E8E6E1&labelColor=0A0A0B" />
 </a>
+
 -->
 
 </div>
@@ -46,33 +48,38 @@ Right now the focus has shifted toward **agentic automation** — orchestrating 
 
 <br/>
 
-<table>
+<table width="100%">
 <tr>
 
-<td width="55%" valign="top">
+<td width="40%" valign="middle">
 
-<br/>
+**<span style="color:#C9A76A">›</span> Primary** — Full-Stack Development
 
-**Primary** — Full-Stack Development  
 `Java · Python · JS · React · Node`
 
 <br/><br/>
 
-**Secondary** — Applied Machine Learning  
+**<span style="color:#C9A76A">›</span> Secondary** — Applied Machine Learning
+
 `Cybersecurity fundamentals`
 
 <br/><br/>
 
-**Current focus** — AI agent automation  
-`n8n · REST APIs · Workflow Automation`
+**<span style="color:#C9A76A">›</span> Current focus** — AI agent automation
 
-<br/>
+`n8n · REST APIs · Workflow Automation`
 
 </td>
 
-<td width="45%" valign="top">
+<td width="20%" align="center" valign="middle">
 
-<img src="assets/profile-card.svg" width="100%" alt="profile card" />
+<img src="assets/monogram.svg" width="150" alt="VD monogram" />
+
+</td>
+
+<td width="40%" valign="middle">
+
+<img src="assets/profile-card.svg" width="100%" alt="Viyan Dabre profile" />
 
 </td>
 
@@ -97,6 +104,7 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 ## `./stack`
 
 <table>
+
 <tr>
 
 <td valign="top" width="25%">
@@ -162,6 +170,7 @@ An n8n-based system that coordinates task-specific AI agents, external APIs, and
 </td>
 
 </tr>
+
 </table>
 
 <br/>
@@ -305,7 +314,9 @@ See [`./currently-building`](#currently-building) above — this one's still in 
 </table>
 
 <sub>
+
 Repository links will be added here as they're published.
+
 </sub>
 
 <br/>
@@ -333,13 +344,21 @@ St. Francis Institute of Technology, Mumbai University, Borivali · CGPA 6.88/10
 <div align="center">
 
 <a href="https://github.com/Viyan-Dabre">GitHub</a>
+
 &nbsp;•&nbsp;
+
 <a href="https://www.linkedin.com/in/viyan-dabre-57293627a">LinkedIn</a>
+
 &nbsp;•&nbsp;
+
 <a href="https://www.instagram.com/dabreviyan/">Instagram</a>
+
 &nbsp;•&nbsp;
+
 <a href="mailto:viyandabre@gmail.com">Email</a>
+
 &nbsp;•&nbsp;
+
 Portfolio <sub>(in progress)</sub>
 
 </div>
