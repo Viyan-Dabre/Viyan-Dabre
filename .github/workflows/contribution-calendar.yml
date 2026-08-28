@@ -18,7 +18,7 @@ jobs:
       - name: Generate GitHub graphics
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PROFILE_TOKEN }}
           script: |
             const fs = require("fs");
             const username = "Viyan-Dabre";
@@ -31,8 +31,10 @@ jobs:
                     totalIssueContributions
                     totalPullRequestContributions
                     totalRepositoriesWithContributedCommits
+
                     contributionCalendar {
                       totalContributions
+
                       weeks {
                         contributionDays {
                           contributionCount
@@ -46,7 +48,16 @@ jobs:
               }
             `;
 
-            const { user } = await github.graphql(query, { login: username });
+            const { user } = await github.graphql(query, {
+              login: username
+            });
+
+            if (!user || !user.contributionsCollection) {
+              throw new Error(
+                "Unable to retrieve GitHub contribution data."
+              );
+            }
+
             const c = user.contributionsCollection;
             const calendar = c.contributionCalendar;
             const weeks = calendar.weeks;
@@ -57,17 +68,29 @@ jobs:
 
             const total = calendar.totalContributions;
             const commits = c.totalCommitContributions;
-            const pullRequests = c.totalPullRequestContributions;
-            const issues = c.totalIssueContributions;
-            const repositories = c.totalRepositoriesWithContributedCommits;
+            const pullRequests =
+              c.totalPullRequestContributions;
+            const issues =
+              c.totalIssueContributions;
+            const repositories =
+              c.totalRepositoriesWithContributedCommits;
 
-            // Longest streak
-            let longest = 0, longestStart = "", longestEnd = "";
-            let run = 0, runStart = "";
+            /*
+             * Longest streak
+             */
+            let longest = 0;
+            let longestStart = "";
+            let longestEnd = "";
+
+            let run = 0;
+            let runStart = "";
 
             for (const day of days) {
               if (day.contributionCount > 0) {
-                if (!run) runStart = day.date;
+                if (!run) {
+                  runStart = day.date;
+                }
+
                 run++;
 
                 if (run > longest) {
@@ -81,11 +104,18 @@ jobs:
               }
             }
 
-            // Current streak
-            let current = 0, currentStart = "", currentEnd = "";
+            /*
+             * Current streak
+             */
+            let current = 0;
+            let currentStart = "";
+            let currentEnd = "";
+
             let i = days.length - 1;
 
-            const today = new Date().toISOString().slice(0, 10);
+            const today = new Date()
+              .toISOString()
+              .slice(0, 10);
 
             if (
               i >= 0 &&
@@ -95,12 +125,21 @@ jobs:
               i--;
             }
 
-            for (; i >= 0 && days[i].contributionCount > 0; i--) {
+            for (
+              ;
+              i >= 0 &&
+              days[i].contributionCount > 0;
+              i--
+            ) {
               current++;
+
               currentEnd ||= days[i].date;
               currentStart = days[i].date;
             }
 
+            /*
+             * Escape SVG text
+             */
             const esc = value =>
               String(value)
                 .replace(/&/g, "&amp;")
@@ -109,9 +148,14 @@ jobs:
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&apos;");
 
+            /*
+             * Format dates
+             */
             const date = value =>
               value
-                ? new Date(`${value}T00:00:00Z`).toLocaleDateString(
+                ? new Date(
+                    `${value}T00:00:00Z`
+                  ).toLocaleDateString(
                     "en-US",
                     {
                       month: "short",
@@ -129,7 +173,10 @@ jobs:
             const size = 12;
             const left = 42;
             const top = 58;
-            const width = left + weeks.length * cell + 12;
+
+            const width =
+              left + weeks.length * cell + 12;
+
             const height = 205;
 
             const colors = {
@@ -141,79 +188,148 @@ jobs:
             };
 
             const months = [
-              "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec"
             ];
 
             let calendarSvg = `
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="${width}" height="${height}"
-                   viewBox="0 0 ${width} ${height}"
-                   role="img"
-                   aria-label="${esc(total)} contributions in the last year">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="${width}"
+                height="${height}"
+                viewBox="0 0 ${width} ${height}"
+                role="img"
+                aria-label="${esc(
+                  total
+                )} contributions in the last year"
+              >
 
-                <rect width="100%" height="100%" rx="10"
-                      fill="#0D1117" stroke="#30363D"/>
+                <rect
+                  width="100%"
+                  height="100%"
+                  rx="10"
+                  fill="#0D1117"
+                  stroke="#30363D"
+                />
 
-                <text x="18" y="24"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="14"
-                      font-weight="600">
+                <text
+                  x="18"
+                  y="24"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="14"
+                  font-weight="600"
+                >
                   ${total} contributions in the last year
                 </text>
             `;
 
+            /*
+             * Month labels
+             */
             let lastMonth = "";
 
             weeks.forEach((week, wi) => {
-              const first = week.contributionDays[0];
+              const first =
+                week.contributionDays[0];
+
               if (!first) return;
 
               const month =
-                months[new Date(`${first.date}T00:00:00Z`).getUTCMonth()];
+                months[
+                  new Date(
+                    `${first.date}T00:00:00Z`
+                  ).getUTCMonth()
+                ];
 
               if (month !== lastMonth) {
                 calendarSvg += `
-                  <text x="${left + wi * cell}" y="46"
-                        fill="#8B949E"
-                        font-family="Arial"
-                        font-size="10">
+                  <text
+                    x="${left + wi * cell}"
+                    y="46"
+                    fill="#8B949E"
+                    font-family="Arial"
+                    font-size="10"
+                  >
                     ${month}
-                  </text>`;
+                  </text>
+                `;
+
                 lastMonth = month;
               }
             });
 
-            [["Mon", 1], ["Wed", 3], ["Fri", 5]].forEach(([label, row]) => {
+            /*
+             * Weekday labels
+             */
+            [
+              ["Mon", 1],
+              ["Wed", 3],
+              ["Fri", 5]
+            ].forEach(([label, row]) => {
               calendarSvg += `
-                <text x="10" y="${top + row * cell + 10}"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="10">
+                <text
+                  x="10"
+                  y="${top + row * cell + 10}"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="10"
+                >
                   ${label}
-                </text>`;
+                </text>
+              `;
             });
 
+            /*
+             * Contribution cells
+             */
             weeks.forEach((week, wi) => {
               week.contributionDays.forEach(day => {
                 const row =
-                  new Date(`${day.date}T00:00:00Z`).getUTCDay();
+                  new Date(
+                    `${day.date}T00:00:00Z`
+                  ).getUTCDay();
 
                 calendarSvg += `
-                  <rect x="${left + wi * cell}"
-                        y="${top + row * cell}"
-                        width="${size}"
-                        height="${size}"
-                        rx="2"
-                        fill="${colors[day.contributionLevel] || colors.NONE}">
+                  <rect
+                    x="${left + wi * cell}"
+                    y="${top + row * cell}"
+                    width="${size}"
+                    height="${size}"
+                    rx="2"
+                    fill="${
+                      colors[
+                        day.contributionLevel
+                      ] || colors.NONE
+                    }"
+                  >
                     <title>
-                      ${day.contributionCount} contribution${day.contributionCount === 1 ? "" : "s"} on ${esc(day.date)}
+                      ${day.contributionCount}
+                      contribution${
+                        day.contributionCount === 1
+                          ? ""
+                          : "s"
+                      }
+                      on ${esc(day.date)}
                     </title>
-                  </rect>`;
+                  </rect>
+                `;
               });
             });
 
+            /*
+             * Calendar legend
+             */
             const legend = [
               "#161B22",
               "#0E4429",
@@ -223,181 +339,275 @@ jobs:
             ];
 
             calendarSvg += `
-              <text x="${left}" y="190"
-                    fill="#8B949E"
-                    font-family="Arial"
-                    font-size="10">
+              <text
+                x="${left}"
+                y="190"
+                fill="#8B949E"
+                font-family="Arial"
+                font-size="10"
+              >
                 Less
               </text>
             `;
 
             legend.forEach((color, i) => {
               calendarSvg += `
-                <rect x="${left + 28 + i * 15}"
-                      y="181"
-                      width="11"
-                      height="11"
-                      rx="2"
-                      fill="${color}"/>`;
+                <rect
+                  x="${left + 28 + i * 15}"
+                  y="181"
+                  width="11"
+                  height="11"
+                  rx="2"
+                  fill="${color}"
+                />
+              `;
             });
 
             calendarSvg += `
-              <text x="${left + 105}" y="190"
-                    fill="#8B949E"
-                    font-family="Arial"
-                    font-size="10">
+              <text
+                x="${left + 105}"
+                y="190"
+                fill="#8B949E"
+                font-family="Arial"
+                font-size="10"
+              >
                 More
               </text>
+
               </svg>
             `;
 
             /*
              * GitHub statistics card
              *
-             * IMPORTANT:
              * profile-card.svg is NOT touched.
              */
             const statsSvg = `
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="820" height="210"
-                   viewBox="0 0 820 210"
-                   role="img"
-                   aria-label="GitHub statistics for ${esc(username)}">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="820"
+                height="210"
+                viewBox="0 0 820 210"
+                role="img"
+                aria-label="GitHub statistics for ${esc(
+                  username
+                )}"
+              >
 
-                <rect width="100%" height="100%" rx="12"
-                      fill="#0D1117" stroke="#30363D"/>
+                <rect
+                  width="100%"
+                  height="100%"
+                  rx="12"
+                  fill="#0D1117"
+                  stroke="#30363D"
+                />
 
-                <text x="28" y="35"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="16"
-                      font-weight="600">
+                <text
+                  x="28"
+                  y="35"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="16"
+                  font-weight="600"
+                >
                   GitHub Stats
                 </text>
 
-                <text x="115" y="85"
-                      text-anchor="middle"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="26"
-                      font-weight="700">
+                <text
+                  x="115"
+                  y="85"
+                  text-anchor="middle"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="26"
+                  font-weight="700"
+                >
                   ${total}
                 </text>
 
-                <text x="115" y="108"
-                      text-anchor="middle"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="11">
+                <text
+                  x="115"
+                  y="108"
+                  text-anchor="middle"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="11"
+                >
                   Total Contributions
                 </text>
 
-                <text x="410" y="85"
-                      text-anchor="middle"
-                      fill="#C9A76A"
-                      font-family="Arial"
-                      font-size="26"
-                      font-weight="700">
+                <text
+                  x="410"
+                  y="85"
+                  text-anchor="middle"
+                  fill="#C9A76A"
+                  font-family="Arial"
+                  font-size="26"
+                  font-weight="700"
+                >
                   ${current}
                 </text>
 
-                <text x="410" y="108"
-                      text-anchor="middle"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="11">
+                <text
+                  x="410"
+                  y="108"
+                  text-anchor="middle"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="11"
+                >
                   Current Streak
                 </text>
 
-                <text x="705" y="85"
-                      text-anchor="middle"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="26"
-                      font-weight="700">
+                <text
+                  x="705"
+                  y="85"
+                  text-anchor="middle"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="26"
+                  font-weight="700"
+                >
                   ${longest}
                 </text>
 
-                <text x="705" y="108"
-                      text-anchor="middle"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="11">
+                <text
+                  x="705"
+                  y="108"
+                  text-anchor="middle"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="11"
+                >
                   Longest Streak
                 </text>
 
-                <line x1="273" y1="58" x2="273" y2="125"
-                      stroke="#30363D"/>
-                <line x1="547" y1="58" x2="547" y2="125"
-                      stroke="#30363D"/>
+                <line
+                  x1="273"
+                  y1="58"
+                  x2="273"
+                  y2="125"
+                  stroke="#30363D"
+                />
 
-                <text x="90" y="155"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="15"
-                      font-weight="600">
+                <line
+                  x1="547"
+                  y1="58"
+                  x2="547"
+                  y2="125"
+                  stroke="#30363D"
+                />
+
+                <text
+                  x="90"
+                  y="155"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="15"
+                  font-weight="600"
+                >
                   ${commits}
                 </text>
-                <text x="90" y="175"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="10">
+
+                <text
+                  x="90"
+                  y="175"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="10"
+                >
                   Commits
                 </text>
 
-                <text x="280" y="155"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="15"
-                      font-weight="600">
+                <text
+                  x="280"
+                  y="155"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="15"
+                  font-weight="600"
+                >
                   ${pullRequests}
                 </text>
-                <text x="280" y="175"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="10">
+
+                <text
+                  x="280"
+                  y="175"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="10"
+                >
                   Pull Requests
                 </text>
 
-                <text x="490" y="155"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="15"
-                      font-weight="600">
+                <text
+                  x="490"
+                  y="155"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="15"
+                  font-weight="600"
+                >
                   ${issues}
                 </text>
-                <text x="490" y="175"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="10">
+
+                <text
+                  x="490"
+                  y="175"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="10"
+                >
                   Issues
                 </text>
 
-                <text x="690" y="155"
-                      fill="#E6EDF3"
-                      font-family="Arial"
-                      font-size="15"
-                      font-weight="600">
+                <text
+                  x="690"
+                  y="155"
+                  fill="#E6EDF3"
+                  font-family="Arial"
+                  font-size="15"
+                  font-weight="600"
+                >
                   ${repositories}
                 </text>
-                <text x="690" y="175"
-                      fill="#8B949E"
-                      font-family="Arial"
-                      font-size="10">
+
+                <text
+                  x="690"
+                  y="175"
+                  fill="#8B949E"
+                  font-family="Arial"
+                  font-size="10"
+                >
                   Repositories
                 </text>
 
-                <text x="410" y="198"
-                      text-anchor="middle"
-                      fill="#6B6D74"
-                      font-family="Arial"
-                      font-size="9">
-                  ${current ? `${date(currentStart)} – ${date(currentEnd)}` : "No current streak"}
+                <text
+                  x="410"
+                  y="198"
+                  text-anchor="middle"
+                  fill="#6B6D74"
+                  font-family="Arial"
+                  font-size="9"
+                >
+                  ${
+                    current
+                      ? `${date(
+                          currentStart
+                        )} – ${date(currentEnd)}`
+                      : "No current streak"
+                  }
                 </text>
+
               </svg>
             `;
 
-            fs.mkdirSync("assets", { recursive: true });
+            /*
+             * Write generated files
+             */
+            fs.mkdirSync("assets", {
+              recursive: true
+            });
 
             fs.writeFileSync(
               "assets/contribution-calendar.svg",
@@ -409,13 +619,36 @@ jobs:
               statsSvg
             );
 
-            console.log(`Total contributions: ${total}`);
-            console.log(`Current streak: ${current}`);
-            console.log(`Longest streak: ${longest}`);
-            console.log(`Commits: ${commits}`);
-            console.log(`Pull requests: ${pullRequests}`);
-            console.log(`Issues: ${issues}`);
-            console.log(`Repositories: ${repositories}`);
+            /*
+             * Diagnostics
+             */
+            console.log(
+              `Total contributions: ${total}`
+            );
+
+            console.log(
+              `Current streak: ${current}`
+            );
+
+            console.log(
+              `Longest streak: ${longest}`
+            );
+
+            console.log(
+              `Commits: ${commits}`
+            );
+
+            console.log(
+              `Pull requests: ${pullRequests}`
+            );
+
+            console.log(
+              `Issues: ${issues}`
+            );
+
+            console.log(
+              `Repositories: ${repositories}`
+            );
 
       - name: Commit generated graphics
         run: |
