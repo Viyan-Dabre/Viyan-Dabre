@@ -39,7 +39,7 @@
           font-family="Arial"
           font-size="26"
           font-weight="700">
-      0
+      9
     </text>
 
     <text x="410" y="108"
@@ -133,6 +133,6 @@
           fill="#6B6D74"
           font-family="Arial"
           font-size="9">
-      No current streak
+      Aug 24, 2026 – Sep 1, 2026
     </text>
   </svg>
