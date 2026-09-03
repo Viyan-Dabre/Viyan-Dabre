@@ -22,7 +22,7 @@
           font-family="Arial"
           font-size="26"
           font-weight="700">
-      54
+      55
     </text>
 
     <text x="115" y="108"
@@ -39,7 +39,7 @@
           font-family="Arial"
           font-size="26"
           font-weight="700">
-      10
+      11
     </text>
 
     <text x="410" y="108"
@@ -56,7 +56,7 @@
           font-family="Arial"
           font-size="26"
           font-weight="700">
-      10
+      11
     </text>
 
     <text x="705" y="108"
@@ -77,7 +77,7 @@
           font-family="Arial"
           font-size="15"
           font-weight="600">
-      44
+      45
     </text>
     <text x="90" y="175"
           fill="#8B949E"
@@ -133,6 +133,6 @@
           fill="#6B6D74"
           font-family="Arial"
           font-size="9">
-      Aug 24, 2026 – Sep 2, 2026
+      Aug 24, 2026 – Sep 3, 2026
     </text>
   </svg>
